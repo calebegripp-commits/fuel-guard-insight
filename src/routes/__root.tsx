@@ -31,14 +31,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "FleetAudit — Auditoria de Frotas" },
+      { name: "description", content: "Sistema de auditoria e análise de consumo de combustível para frotas" },
+      { name: "author", content: "FleetAudit" },
+      { property: "og:title", content: "FleetAudit — Auditoria de Frotas" },
+      { property: "og:description", content: "Sistema de auditoria e análise de consumo de combustível para frotas" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
