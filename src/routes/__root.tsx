@@ -38,6 +38,10 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Sistema de auditoria e análise de consumo de combustível para frotas" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "FleetAudit — Auditoria de Frotas" },
+      { name: "twitter:description", content: "Sistema de auditoria e análise de consumo de combustível para frotas" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8102cec3-94eb-44dd-9832-9d08dfebfc04/id-preview-599395a1--b46f0dda-89bb-45e2-a388-4e76ce06030b.lovable.app-1775842268537.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8102cec3-94eb-44dd-9832-9d08dfebfc04/id-preview-599395a1--b46f0dda-89bb-45e2-a388-4e76ce06030b.lovable.app-1775842268537.png" },
     ],
     links: [
       {
