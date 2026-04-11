@@ -64,6 +64,84 @@ export type Database = {
           },
         ]
       }
+      historico_consumo: {
+        Row: {
+          created_at: string
+          data_hora: string | null
+          id: string
+          km_anterior: number | null
+          km_litro: number | null
+          km_rodado: number | null
+          motorista: string | null
+          placa: string | null
+          posto: string | null
+          preco_unitario: number | null
+          produto: string | null
+          quantidade_total: number | null
+          valor_venda: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_hora?: string | null
+          id?: string
+          km_anterior?: number | null
+          km_litro?: number | null
+          km_rodado?: number | null
+          motorista?: string | null
+          placa?: string | null
+          posto?: string | null
+          preco_unitario?: number | null
+          produto?: string | null
+          quantidade_total?: number | null
+          valor_venda?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string | null
+          id?: string
+          km_anterior?: number | null
+          km_litro?: number | null
+          km_rodado?: number | null
+          motorista?: string | null
+          placa?: string | null
+          posto?: string | null
+          preco_unitario?: number | null
+          produto?: string | null
+          quantidade_total?: number | null
+          valor_venda?: number | null
+        }
+        Relationships: []
+      }
+      rastreador_bruto: {
+        Row: {
+          area_rota: string | null
+          created_at: string
+          data_inicial_timestamp: string | null
+          id: string
+          modelo_extraido: string | null
+          placa_extraida: string | null
+          unidade_rastreada: string
+        }
+        Insert: {
+          area_rota?: string | null
+          created_at?: string
+          data_inicial_timestamp?: string | null
+          id?: string
+          modelo_extraido?: string | null
+          placa_extraida?: string | null
+          unidade_rastreada: string
+        }
+        Update: {
+          area_rota?: string | null
+          created_at?: string
+          data_inicial_timestamp?: string | null
+          id?: string
+          modelo_extraido?: string | null
+          placa_extraida?: string | null
+          unidade_rastreada?: string
+        }
+        Relationships: []
+      }
       rastreamento: {
         Row: {
           created_at: string
@@ -104,6 +182,30 @@ export type Database = {
             referencedColumns: ["placa"]
           },
         ]
+      }
+      relacao_frota: {
+        Row: {
+          created_at: string
+          id: string
+          modelo: string | null
+          placa: string
+          responsavel_local: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          modelo?: string | null
+          placa: string
+          responsavel_local?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          modelo?: string | null
+          placa?: string
+          responsavel_local?: string | null
+        }
+        Relationships: []
       }
       veiculos: {
         Row: {
