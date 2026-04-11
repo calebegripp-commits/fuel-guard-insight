@@ -3,7 +3,7 @@ import { Upload, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   parseSpreadsheet, autoMapColumns, mapRow, toISO,
-  extractModeloPlaca, normalizePlate,
+  extractModeloPlaca,
   RASTREADOR_COLUMNS, FROTA_COLUMNS, CONSUMO_COLUMNS,
   type ColumnMapping,
 } from '@/lib/upload-helpers';
