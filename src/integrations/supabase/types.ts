@@ -14,7 +14,124 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      abastecimentos: {
+        Row: {
+          created_at: string
+          data_hora: string
+          id: string
+          km_odometro: number | null
+          litros: number
+          motorista: string | null
+          placa_original: string
+          placa_validada: string | null
+          posto: string | null
+          status_auditoria: string
+          valor_total: number
+        }
+        Insert: {
+          created_at?: string
+          data_hora: string
+          id?: string
+          km_odometro?: number | null
+          litros: number
+          motorista?: string | null
+          placa_original: string
+          placa_validada?: string | null
+          posto?: string | null
+          status_auditoria?: string
+          valor_total: number
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string
+          id?: string
+          km_odometro?: number | null
+          litros?: number
+          motorista?: string | null
+          placa_original?: string
+          placa_validada?: string | null
+          posto?: string | null
+          status_auditoria?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "abastecimentos_placa_validada_fkey"
+            columns: ["placa_validada"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["placa"]
+          },
+        ]
+      }
+      rastreamento: {
+        Row: {
+          created_at: string
+          data_hora: string
+          id: string
+          ignicao: boolean | null
+          latitude: number | null
+          longitude: number | null
+          placa: string
+          velocidade: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_hora: string
+          id?: string
+          ignicao?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          placa: string
+          velocidade?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string
+          id?: string
+          ignicao?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          placa?: string
+          velocidade?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rastreamento_placa_fkey"
+            columns: ["placa"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["placa"]
+          },
+        ]
+      }
+      veiculos: {
+        Row: {
+          capacidade_tanque: number
+          contrato: string | null
+          created_at: string
+          id: string
+          modelo: string
+          placa: string
+        }
+        Insert: {
+          capacidade_tanque?: number
+          contrato?: string | null
+          created_at?: string
+          id?: string
+          modelo: string
+          placa: string
+        }
+        Update: {
+          capacidade_tanque?: number
+          contrato?: string | null
+          created_at?: string
+          id?: string
+          modelo?: string
+          placa?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
