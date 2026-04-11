@@ -65,3 +65,67 @@ export interface RastreamentoInsert {
 }
 
 export type StatusAuditoria = 'PENDENTE' | 'CONFORME' | 'NAO_CONFORME' | 'SUSPEITO';
+
+// --- Novas tabelas para importação de planilhas ---
+
+export interface RastreadorBruto {
+  id: string;
+  area_rota: string | null;
+  unidade_rastreada: string;
+  modelo_extraido: string | null;
+  placa_extraida: string | null;
+  data_inicial_timestamp: string | null;
+  created_at: string;
+}
+
+export interface RastreadorBrutoInsert {
+  area_rota?: string | null;
+  unidade_rastreada: string;
+  modelo_extraido?: string | null;
+  placa_extraida?: string | null;
+  data_inicial_timestamp?: string | null;
+}
+
+export interface RelacaoFrota {
+  id: string;
+  placa: string;
+  modelo: string | null;
+  responsavel_local: string | null;
+  created_at: string;
+}
+
+export interface RelacaoFrotaInsert {
+  placa: string;
+  modelo?: string | null;
+  responsavel_local?: string | null;
+}
+
+export interface HistoricoConsumo {
+  id: string;
+  data_hora: string | null;
+  placa: string | null;
+  motorista: string | null;
+  km_anterior: number | null;
+  km_rodado: number | null;
+  km_litro: number | null;
+  quantidade_total: number | null;
+  preco_unitario: number | null;
+  valor_venda: number | null;
+  produto: string | null;
+  posto: string | null;
+  created_at: string;
+}
+
+export interface HistoricoConsumoInsert {
+  data_hora?: string | null;
+  placa?: string | null;
+  motorista?: string | null;
+  km_anterior?: number | null;
+  km_rodado?: number | null;
+  km_litro?: number | null;
+  quantidade_total?: number | null;
+  preco_unitario?: number | null;
+  valor_venda?: number | null;
+  produto?: string | null;
+  posto?: string | null;
+}
