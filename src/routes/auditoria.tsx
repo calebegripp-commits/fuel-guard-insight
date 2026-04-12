@@ -3,6 +3,8 @@ import { AppLayout } from '@/components/AppLayout';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useState, useEffect } from 'react';
 import { Search, Download, CalendarDays, Eye, Loader2 } from 'lucide-react';
+import { exportToExcel } from '@/lib/export-utils';
+import { toast } from 'sonner';
 import { runAuditCrossRef, type AuditCrossResult, type AuditCrossStatus } from '@/lib/audit-crossref';
 import {
   Dialog,
@@ -70,9 +72,21 @@ function AuditoriaPage() {
             <h1 className="text-2xl font-bold text-foreground">Auditoria</h1>
             <p className="text-sm text-muted-foreground">Cruzamento entre histórico de consumo e rastreador</p>
           </div>
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          <button
+            onClick={() => {
+              const data = filtered.map((r) => ({
+                Data: r.data_hora ? new Date(r.data_hora).toLocaleString('pt-BR') : '',
+                Placa: r.placa, Motorista: r.motorista || '', Posto: r.posto || '',
+                Litros: r.quantidade_total, Valor: r.valor_venda, 'km/L': r.km_litro,
+                Status: r.status, Motivo: r.motivo,
+              }));
+              exportToExcel(data, 'auditoria-fleetaudit', 'Auditoria');
+              toast.success('Relatório exportado');
+            }}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
             <Download className="h-4 w-4" />
-            Exportar
+            Exportar Excel
           </button>
         </div>
 
