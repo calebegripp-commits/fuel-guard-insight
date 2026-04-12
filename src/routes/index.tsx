@@ -2,13 +2,15 @@ import { createFileRoute } from '@tanstack/react-router';
 import { AppLayout } from '@/components/AppLayout';
 import { MetricCard } from '@/components/MetricCard';
 import { useState, useEffect } from 'react';
-import { Fuel, DollarSign, Gauge, ClipboardCheck, TrendingUp, AlertTriangle, Search, CalendarDays, Loader2 } from 'lucide-react';
+import { Fuel, DollarSign, Gauge, ClipboardCheck, TrendingUp, AlertTriangle, Search, CalendarDays, Loader2, Download } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, LineChart, Line,
 } from 'recharts';
 import { fetchDashboardData, type DashboardMetrics, type MonthlyPoint, type VehicleRank } from '@/lib/dashboard-data';
 import type { AuditCrossResult } from '@/lib/audit-crossref';
+import { exportToExcel } from '@/lib/export-utils';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -84,6 +86,20 @@ function DashboardPage() {
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             <p className="text-sm text-muted-foreground">Visão geral da auditoria de frotas — dados reais</p>
           </div>
+          <button
+            onClick={() => {
+              const data = vehicleRanking.map((v) => ({
+                Placa: v.placa, Modelo: v.modelo, 'km/L': v.mediaKml,
+                'Total Litros': v.totalLitros, 'Total Valor': v.totalValor, Anomalia: v.anomalia ? 'SIM' : '',
+              }));
+              exportToExcel(data, 'dashboard-fleetaudit', 'Dashboard');
+              toast.success('Relatório exportado');
+            }}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Download className="h-4 w-4" />
+            Exportar Excel
+          </button>
         </div>
 
         {/* Global Filters */}
