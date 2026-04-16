@@ -8,11 +8,13 @@ import {
   AlertTriangle,
   BarChart3,
   Fuel,
+  Database,
 } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/upload', icon: Upload, label: 'Importação' },
+  { to: '/status', icon: Database, label: 'Status dos Dados' },
   { to: '/auditoria', icon: ShieldCheck, label: 'Auditoria' },
   { to: '/veiculos', icon: Car, label: 'Veículos' },
   { to: '/motoristas', icon: Users, label: 'Motoristas' },
