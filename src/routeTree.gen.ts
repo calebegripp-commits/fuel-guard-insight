@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VeiculosRouteImport } from './routes/veiculos'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as MotoristasRouteImport } from './routes/motoristas'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as AlertasRouteImport } from './routes/alertas'
@@ -24,6 +25,11 @@ const VeiculosRoute = VeiculosRouteImport.update({
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MotoristasRoute = MotoristasRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/alertas': typeof AlertasRoute
   '/auditoria': typeof AuditoriaRoute
   '/motoristas': typeof MotoristasRoute
+  '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/veiculos': typeof VeiculosRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/alertas': typeof AlertasRoute
   '/auditoria': typeof AuditoriaRoute
   '/motoristas': typeof MotoristasRoute
+  '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/veiculos': typeof VeiculosRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/alertas': typeof AlertasRoute
   '/auditoria': typeof AuditoriaRoute
   '/motoristas': typeof MotoristasRoute
+  '/status': typeof StatusRoute
   '/upload': typeof UploadRoute
   '/veiculos': typeof VeiculosRoute
 }
@@ -79,16 +88,25 @@ export interface FileRouteTypes {
     | '/alertas'
     | '/auditoria'
     | '/motoristas'
+    | '/status'
     | '/upload'
     | '/veiculos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/alertas' | '/auditoria' | '/motoristas' | '/upload' | '/veiculos'
+  to:
+    | '/'
+    | '/alertas'
+    | '/auditoria'
+    | '/motoristas'
+    | '/status'
+    | '/upload'
+    | '/veiculos'
   id:
     | '__root__'
     | '/'
     | '/alertas'
     | '/auditoria'
     | '/motoristas'
+    | '/status'
     | '/upload'
     | '/veiculos'
   fileRoutesById: FileRoutesById
@@ -98,6 +116,7 @@ export interface RootRouteChildren {
   AlertasRoute: typeof AlertasRoute
   AuditoriaRoute: typeof AuditoriaRoute
   MotoristasRoute: typeof MotoristasRoute
+  StatusRoute: typeof StatusRoute
   UploadRoute: typeof UploadRoute
   VeiculosRoute: typeof VeiculosRoute
 }
@@ -116,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/motoristas': {
@@ -154,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlertasRoute: AlertasRoute,
   AuditoriaRoute: AuditoriaRoute,
   MotoristasRoute: MotoristasRoute,
+  StatusRoute: StatusRoute,
   UploadRoute: UploadRoute,
   VeiculosRoute: VeiculosRoute,
 }

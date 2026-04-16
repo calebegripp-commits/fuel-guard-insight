@@ -64,6 +64,45 @@ export type Database = {
           },
         ]
       }
+      auditoria_consumo: {
+        Row: {
+          area_rota_rastreador: string | null
+          atualizado_em: string
+          consumo_id: string
+          data_hora: string | null
+          diff_minutos: number | null
+          id: string
+          motivo: string | null
+          placa: string | null
+          posto: string | null
+          status: string
+        }
+        Insert: {
+          area_rota_rastreador?: string | null
+          atualizado_em?: string
+          consumo_id: string
+          data_hora?: string | null
+          diff_minutos?: number | null
+          id?: string
+          motivo?: string | null
+          placa?: string | null
+          posto?: string | null
+          status: string
+        }
+        Update: {
+          area_rota_rastreador?: string | null
+          atualizado_em?: string
+          consumo_id?: string
+          data_hora?: string | null
+          diff_minutos?: number | null
+          id?: string
+          motivo?: string | null
+          placa?: string | null
+          posto?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       historico_consumo: {
         Row: {
           created_at: string
@@ -109,6 +148,54 @@ export type Database = {
           produto?: string | null
           quantidade_total?: number | null
           valor_venda?: number | null
+        }
+        Relationships: []
+      }
+      metricas_veiculo: {
+        Row: {
+          atualizado_em: string
+          custo_por_km: number | null
+          desvio_consumo: boolean
+          km_por_litro: number | null
+          modelo: string | null
+          num_abastecimentos: number
+          placa: string
+          primeiro_abastecimento: string | null
+          responsavel_local: string | null
+          total_km_rodado: number
+          total_litros: number
+          total_valor: number
+          ultimo_abastecimento: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          custo_por_km?: number | null
+          desvio_consumo?: boolean
+          km_por_litro?: number | null
+          modelo?: string | null
+          num_abastecimentos?: number
+          placa: string
+          primeiro_abastecimento?: string | null
+          responsavel_local?: string | null
+          total_km_rodado?: number
+          total_litros?: number
+          total_valor?: number
+          ultimo_abastecimento?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          custo_por_km?: number | null
+          desvio_consumo?: boolean
+          km_por_litro?: number | null
+          modelo?: string | null
+          num_abastecimentos?: number
+          placa?: string
+          primeiro_abastecimento?: string | null
+          responsavel_local?: string | null
+          total_km_rodado?: number
+          total_litros?: number
+          total_valor?: number
+          ultimo_abastecimento?: string | null
         }
         Relationships: []
       }
@@ -207,6 +294,39 @@ export type Database = {
         }
         Relationships: []
       }
+      status_dados_veiculo: {
+        Row: {
+          atualizado_em: string
+          completude: string
+          num_consumo: number
+          num_rastreador: number
+          placa: string
+          tem_consumo: boolean
+          tem_frota: boolean
+          tem_rastreador: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          completude?: string
+          num_consumo?: number
+          num_rastreador?: number
+          placa: string
+          tem_consumo?: boolean
+          tem_frota?: boolean
+          tem_rastreador?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          completude?: string
+          num_consumo?: number
+          num_rastreador?: number
+          placa?: string
+          tem_consumo?: boolean
+          tem_frota?: boolean
+          tem_rastreador?: boolean
+        }
+        Relationships: []
+      }
       veiculos: {
         Row: {
           capacidade_tanque: number
@@ -239,7 +359,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      extract_plate_from_text: { Args: { input: string }; Returns: string }
+      normalize_plate: { Args: { input: string }; Returns: string }
+      refresh_all_metrics: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

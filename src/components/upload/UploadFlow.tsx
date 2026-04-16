@@ -1,15 +1,24 @@
-import { useState, useCallback, useRef } from 'react';
-import { Upload, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Upload, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  parseSpreadsheet, autoMapColumns, mapRow, toISO,
-  extractModeloPlaca,
-  RASTREADOR_COLUMNS, FROTA_COLUMNS, CONSUMO_COLUMNS,
+  parseSpreadsheet,
+  autoMapColumns,
+  detectSheetType,
+  mapRow,
+  COLUMN_ALIASES,
   type ColumnMapping,
-} from '@/lib/upload-helpers';
+  type SheetType,
+} from '@/services/importService';
+import {
+  toISO,
+  toNumber,
+  toText,
+  normalizePlate,
+  extractModeloPlaca,
+} from '@/services/normalizationService';
 import { ColumnMapper } from './ColumnMapper';
 import { UploadResult } from './UploadResult';
-import { normalizePlate as normPlate } from '@/lib/plate-extractor';
 
 type FlowType = 'rastreador' | 'frota' | 'consumo';
 
@@ -19,10 +28,10 @@ interface UploadFlowProps {
   description: string;
 }
 
-const FLOW_CONFIG: Record<FlowType, { columns: Record<string, readonly string[]>; table: string }> = {
-  rastreador: { columns: RASTREADOR_COLUMNS, table: 'rastreador_bruto' },
-  frota: { columns: FROTA_COLUMNS, table: 'relacao_frota' },
-  consumo: { columns: CONSUMO_COLUMNS, table: 'historico_consumo' },
+const FLOW_CONFIG: Record<FlowType, { table: string; label: string }> = {
+  rastreador: { table: 'rastreador_bruto', label: 'Rastreador' },
+  frota: { table: 'relacao_frota', label: 'Relação de Frota' },
+  consumo: { table: 'historico_consumo', label: 'Histórico de Consumo' },
 };
 
 const BATCH_SIZE = 100;
@@ -35,9 +44,11 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<{ total: number; success: number; errors: number; invalidPlates: number; errorMessages: string[] } | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [detected, setDetected] = useState<{ type: SheetType; confidence: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const config = FLOW_CONFIG[type];
+  const mismatch = detected && detected.type !== 'unknown' && detected.type !== type;
 
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
@@ -46,9 +57,15 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
     const buffer = await f.arrayBuffer();
     const parsed = parseSpreadsheet(buffer);
     setSheetData(parsed);
-    const autoMap = autoMapColumns(parsed.columns, config.columns);
-    setMapping(autoMap);
-  }, [config]);
+
+    const det = detectSheetType(parsed.columns);
+    setDetected({ type: det.type, confidence: det.confidence });
+
+    // Use mapping for the *expected* type of this card. If detected differs,
+    // user gets a warning but can still proceed (or we re-map for detected).
+    const expectedKey: FlowType = det.type !== 'unknown' && det.type !== type ? (det.type as FlowType) : type;
+    setMapping(autoMapColumns(parsed.columns, COLUMN_ALIASES[expectedKey]));
+  }, [type]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -56,6 +73,17 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f);
   }, [handleFile]);
+
+  const effectiveType: FlowType = (detected && detected.type !== 'unknown' ? (detected.type as FlowType) : type);
+  const effectiveConfig = FLOW_CONFIG[effectiveType];
+
+  // If user changes detection acknowledgment, recompute mapping
+  useEffect(() => {
+    if (sheetData) {
+      setMapping(autoMapColumns(sheetData.columns, COLUMN_ALIASES[effectiveType]));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveType]);
 
   const processAndUpload = useCallback(async () => {
     if (!sheetData) return;
@@ -73,46 +101,46 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
       const records = batch.map((row) => {
         const mapped = mapRow(row, mapping);
 
-        if (type === 'rastreador') {
+        if (effectiveType === 'rastreador') {
           const raw = String(mapped.unidade_rastreada || '');
-          const { modelo, placa, placaValida } = extractModeloPlaca(raw);
-          if (!placaValida) invalidPlates++;
+          const { modelo, placa, valida } = extractModeloPlaca(raw);
+          if (!valida) invalidPlates++;
           return {
-            area_rota: mapped.area_rota ? String(mapped.area_rota) : null,
+            area_rota: toText(mapped.area_rota),
             unidade_rastreada: raw,
             modelo_extraido: modelo || null,
-            placa_extraida: placa || null,
+            placa_extraida: placa,
             data_inicial_timestamp: toISO(mapped.data_inicial_timestamp),
           };
         }
 
-        if (type === 'frota') {
-          const placa = normPlate(String(mapped.placa || ''));
+        if (effectiveType === 'frota') {
+          const placa = normalizePlate(mapped.placa);
           return {
-            placa,
-            modelo: mapped.modelo ? String(mapped.modelo) : null,
-            responsavel_local: mapped.responsavel_local ? String(mapped.responsavel_local) : null,
+            placa: placa || '',
+            modelo: toText(mapped.modelo),
+            responsavel_local: toText(mapped.responsavel_local),
           };
         }
 
-        // consumo
-        const placa = normPlate(String(mapped.placa || ''));
+        const placa = normalizePlate(mapped.placa);
         return {
           data_hora: toISO(mapped.data_hora),
-          placa: placa || null,
-          motorista: mapped.motorista ? String(mapped.motorista) : null,
-          km_anterior: mapped.km_anterior != null ? Number(mapped.km_anterior) || null : null,
-          km_rodado: mapped.km_rodado != null ? Number(mapped.km_rodado) || null : null,
-          km_litro: mapped.km_litro != null ? Number(mapped.km_litro) || null : null,
-          quantidade_total: mapped.quantidade_total != null ? Number(mapped.quantidade_total) || null : null,
-          preco_unitario: mapped.preco_unitario != null ? Number(mapped.preco_unitario) || null : null,
-          valor_venda: mapped.valor_venda != null ? Number(mapped.valor_venda) || null : null,
-          produto: mapped.produto ? String(mapped.produto) : null,
-          posto: mapped.posto ? String(mapped.posto) : null,
+          placa,
+          motorista: toText(mapped.motorista),
+          km_anterior: toNumber(mapped.km_anterior),
+          km_rodado: toNumber(mapped.km_rodado),
+          km_litro: toNumber(mapped.km_litro),
+          quantidade_total: toNumber(mapped.quantidade_total),
+          preco_unitario: toNumber(mapped.preco_unitario),
+          valor_venda: toNumber(mapped.valor_venda),
+          produto: toText(mapped.produto),
+          posto: toText(mapped.posto),
         };
       });
 
-      const { error } = await supabase.from(config.table as 'rastreador_bruto' | 'relacao_frota' | 'historico_consumo').insert(records as any);
+      const tableName = effectiveConfig.table as 'rastreador_bruto' | 'relacao_frota' | 'historico_consumo';
+      const { error } = await supabase.from(tableName).insert(records as never);
 
       if (error) {
         errors += batch.length;
@@ -126,7 +154,7 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
 
     setResult({ total: rows.length, success, errors, invalidPlates, errorMessages });
     setUploading(false);
-  }, [sheetData, mapping, type, config]);
+  }, [sheetData, mapping, effectiveType, effectiveConfig]);
 
   const reset = () => {
     setFile(null);
@@ -134,6 +162,7 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
     setMapping({});
     setProgress(0);
     setResult(null);
+    setDetected(null);
   };
 
   return (
@@ -158,6 +187,7 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
         >
           <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-2 text-xs text-muted-foreground">Arraste ou clique para selecionar (.csv, .xlsx, .xls)</p>
+          <p className="mt-1 text-[10px] text-muted-foreground/70">A ordem não importa — auto-detecção do tipo</p>
           <input
             ref={inputRef}
             type="file"
@@ -178,10 +208,32 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
             <button onClick={reset} className="text-xs text-muted-foreground hover:text-foreground">✕ Remover</button>
           </div>
 
-          {/* Column mapper for unmapped fields */}
+          {detected && detected.type !== 'unknown' && (
+            <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-xs ${
+              mismatch ? 'border-yellow-500/50 bg-yellow-500/10 text-yellow-300' : 'border-green-500/40 bg-green-500/10 text-green-300'
+            }`}>
+              {mismatch ? <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />}
+              <div className="flex-1">
+                <p className="font-semibold">
+                  {mismatch ? 'Tipo detectado diferente do esperado' : 'Planilha reconhecida'}
+                </p>
+                <p className="text-[11px] opacity-90">
+                  Detectado: <b>{FLOW_CONFIG[detected.type as FlowType]?.label ?? detected.type}</b>
+                  {' '}({Math.round(detected.confidence * 100)}% de confiança).
+                  {mismatch && ` Os dados serão importados como "${FLOW_CONFIG[detected.type as FlowType]?.label}".`}
+                </p>
+              </div>
+            </div>
+          )}
+          {detected && detected.type === 'unknown' && (
+            <div className="flex items-start gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <p>Não foi possível identificar o tipo da planilha automaticamente. Use o mapeamento manual abaixo.</p>
+            </div>
+          )}
+
           <ColumnMapper mapping={mapping} sheetColumns={sheetData.columns} onUpdate={setMapping} />
 
-          {/* Mapped columns preview */}
           <div className="space-y-1">
             <p className="text-xs font-semibold text-muted-foreground">Mapeamento de colunas</p>
             <div className="flex flex-wrap gap-1.5">
@@ -193,7 +245,6 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
             </div>
           </div>
 
-          {/* Data preview */}
           <div className="max-h-40 overflow-auto rounded-lg bg-muted/30">
             <table className="w-full text-[10px]">
               <thead>
@@ -215,12 +266,11 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
             </table>
           </div>
 
-          {/* Progress bar */}
           {uploading && (
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Importando... {progress}%
+                Importando... {progress}% — recálculo automático rodará no servidor
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
@@ -228,17 +278,15 @@ export function UploadFlow({ type, title, description }: UploadFlowProps) {
             </div>
           )}
 
-          {/* Result */}
           {result && <UploadResult {...result} />}
 
-          {/* Action button */}
           {!result && (
             <button
               onClick={processAndUpload}
               disabled={uploading}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              {uploading ? 'Importando...' : `Importar ${sheetData.data.length} registros`}
+              {uploading ? 'Importando...' : `Importar ${sheetData.data.length} registros como ${effectiveConfig.label}`}
             </button>
           )}
 
